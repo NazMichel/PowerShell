@@ -1,12 +1,7 @@
-﻿
-#$LocalDriveC = Get-PSDrive -Name C
+﻿#Get Disk Space % on all drives on all computers
 
-#Get List of computers in a table
-$Computers = "LON-CL1","LON-DC1","LON-SVR1"
+$computer = Get-ADComputer -Filter * | Select-Object Name
 
-Foreach($Computer in $Computers){
-
-    
-    Get-CimInstance Win32_LogicalDisk -ComputerName $computer | Select-Object PSComputerName,DeviceID,FreeSpace | Where-Object -Property FreeSpace -NE -Value $NULL
-    #Write-Host "$Computer" -ForegroundColor Yellow
-    }
+Get-CimInstance Win32_LogicalDisk -ComputerName $computer.name -Filter DriveType=3 | Select-Object PSComputerName,DeviceID,
+    @{'Name'='Free Space (GB)'; 'Expression'={[string]::Format('{0:N0}',[math]::truncate($_.freespace / 1GB))}},
+    @{'Name'='% Free'; 'Expression'={[string]::Format('{0:N2}',[math]::truncate($_.freespace) / [math]::truncate($_.size) * 100)}}
